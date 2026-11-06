@@ -6,9 +6,10 @@ import { ComprasController } from './compras.controller';
 import { Licencia } from './licencia.entity';
 import { LicenciasController } from './licencias.controller';
 import { LicenciasService } from './licencias.service';
+import { KafkaModule } from '../kafka/kafka.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Licencia])],
+  imports: [TypeOrmModule.forFeature([Licencia]), KafkaModule],
   controllers: [ComprasController, BibliotecaController, LicenciasController],
   providers: [LicenciasService, RabbitService],
 })

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 import { ROUTING_KEYS } from '../mensajeria/topologia';
 import { RabbitService } from '../rabbit/rabbit.service';
+import { KafkaService } from '../kafka/kafka.service';
 import { Licencia } from './licencia.entity';
 
 function esViolacionUnica(err: unknown): boolean {
@@ -16,6 +17,7 @@ export class LicenciasService {
   constructor(
     @InjectRepository(Licencia) private readonly repo: Repository<Licencia>,
     private readonly rabbit: RabbitService,
+    private readonly kafka: KafkaService,
   ) {}
 
   async comprar(juegoId: string, usuarioSub: string) {
@@ -36,6 +38,16 @@ export class LicenciasService {
       usuarioSub: licencia.usuarioSub,
       adquiridaEn: licencia.adquiridaEn.toISOString(),
     });
+    await this.publicarKafka(
+      {
+        licenciaId: licencia.id,
+        juegoId: licencia.juegoId,
+        usuarioSub: licencia.usuarioSub,
+        adquiridaEn: licencia.adquiridaEn.toISOString(),
+      },
+      licencia.usuarioSub,
+      'compra',
+    );
     return { ...licencia, eventoPublicado };
   }
 
@@ -69,7 +81,35 @@ export class LicenciasService {
       revocadaPor, // el administrador: sale del token
       motivo: motivo?.trim() || 'Sin motivo indicado',
     });
+    await this.publicarKafka(
+      {
+        licenciaId,
+        juegoId: licencia.juegoId,
+        usuarioSub: licencia.usuarioSub,
+        revocadaPor,
+        motivo: motivo?.trim() || 'Sin motivo indicado',
+      },
+      licencia.usuarioSub,
+      'revocacion',
+    );
     return { ...licencia, estado: 'revocada', revocadaEn, revocadaPor, eventoPublicado };
+  }
+
+  private async publicarKafka(
+    payload: Record<string, unknown>,
+    usuarioSub: string,
+    tipo: 'compra' | 'revocacion',
+  ): Promise<void> {
+    try {
+      if (tipo === 'compra') {
+        await this.kafka.publicarCompra(payload, usuarioSub);
+      } else {
+        await this.kafka.publicarRevocacion(payload, usuarioSub);
+      }
+    } catch (err) {
+      const motivo = err instanceof Error ? err.message : String(err);
+      this.logger.error(`EVENTO KAFKA NO PUBLICADO (${tipo}, ${usuarioSub}): ${motivo}`);
+    }
   }
 
   private async publicar(routingKey: string, licenciaId: string, payload: object): Promise<boolean> {

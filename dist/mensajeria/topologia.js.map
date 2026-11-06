@@ -1,0 +1,1 @@
+{"version":3,"file":"topologia.js","sourceRoot":"","sources":["../../src/mensajeria/topologia.ts"],"names":[],"mappings":";;;AAAa,QAAA,SAAS,GAAG;IACvB,OAAO,EAAE,EAAE,MAAM,EAAE,oBAAoB,EAAE,IAAI,EAAE,OAAO,EAAE;CAChD,CAAC;AAEE,QAAA,YAAY,GAAG;IAC1B,eAAe,EAAE,kBAAkB;IACnC,gBAAgB,EAAE,mBAAmB;CAC7B,CAAC"}

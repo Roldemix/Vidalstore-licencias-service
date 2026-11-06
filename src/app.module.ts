@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Licencia } from './licencias/licencia.entity';
 import { LicenciasModule } from './licencias/licencias.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LicenciasModule } from './licencias/licencias.module';
       }),
     }),
     LicenciasModule,
+    KafkaModule,
   ],
 })
 export class AppModule {}
