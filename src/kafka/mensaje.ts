@@ -20,7 +20,9 @@ export function aMensaje(
   return {
     topic,
     key: usuarioSub,
-    value: JSON.stringify(evento),
+    // Sobre version 1 completo en el value. Los headers se mantienen por
+    // compatibilidad, pero el consumidor ya no depende de ellos.
+    value: JSON.stringify({ ...evento, eventoId, tipo: tipoEvento, version: 1, emitidoEn }),
     headers: {
       'x-evento-id': eventoId,
       'x-tipo-evento': tipoEvento,
